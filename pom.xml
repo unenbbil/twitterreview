@@ -6,8 +6,8 @@
 
   <!-- Grundangaben zum Maven-Projekt -->  
   <groupId>ch.zhaw.gpi</groupId>  
-  <artifactId>camunda-spring-boot-template</artifactId>  
-  <name>Camunda Spring Boot Template</name>  
+  <artifactId>twitterreview</artifactId>  
+  <name>Twitter Review</name>  
   <version>2.0.0</version>  
 
   <!-- Spring Boot als Parent POM -->
