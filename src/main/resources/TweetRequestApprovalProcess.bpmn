@@ -155,8 +155,8 @@
         <bpmn:flowNodeRef>AufVerboteneWorterPrufenTask</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="MitarbeiterLane" name="Mitarbeiter">
-        <bpmn:flowNodeRef>TweetUberarbeitenTask1</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>TweetEingereichtStartEvent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TweetUberarbeitenTask1</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
     <bpmn:task id="BenutzerinformationenAuslesenTask" name="Benutzerinformationen auslesen">
@@ -190,10 +190,6 @@
     <bpmn:endEvent id="TweetGepostedEndEvent" name="Tweet geposted">
       <bpmn:incoming>Flow_1avycuw</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:task id="TweetUberarbeitenTask1" name="Tweet überarbeiten">
-      <bpmn:incoming>ZuUberarbeitenSequenceFlow1</bpmn:incoming>
-      <bpmn:outgoing>Flow_0rp82z6</bpmn:outgoing>
-    </bpmn:task>
     <bpmn:exclusiveGateway id="Gateway_0rqe009">
       <bpmn:incoming>Flow_0rp82z6</bpmn:incoming>
       <bpmn:incoming>Flow_0r4gqap</bpmn:incoming>
@@ -231,7 +227,12 @@
     <bpmn:sequenceFlow id="Flow_1avycuw" sourceRef="BestatigungMitteilenTask" targetRef="TweetGepostedEndEvent" />
     <bpmn:sequenceFlow id="Flow_0m0chuj" sourceRef="Gateway_0rqe009" targetRef="ManuellePrufungErforderlichGateway" />
     <bpmn:sequenceFlow id="Flow_0zq3832" sourceRef="BenutzerinformationenAuslesenTask" targetRef="AufVerboteneWorterPrufenTask" />
-    <bpmn:startEvent id="TweetEingereichtStartEvent" name="Tweet eingereicht" camunda:asyncAfter="true">
+    <bpmn:startEvent id="TweetEingereichtStartEvent" name="Tweet eingereicht" camunda:asyncAfter="true" camunda:initiator="anfrageStellenderBenutzer">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="tweetContent" label="Gewünschter Tweet-Text" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
       <bpmn:outgoing>Flow_0by82jn</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:scriptTask id="AufVerboteneWorterPrufenTask" name="Auf verbotene Wörter prüfen" scriptFormat="JavaScript">
@@ -241,11 +242,46 @@
 var result = tc.toLowerCase().indexOf("gpi");
 execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckRequired"));</bpmn:script>
     </bpmn:scriptTask>
-    <bpmn:scriptTask id="TweetAnfragePrufenTask1" name="Tweet-Anfrage prüfen" scriptFormat="JavaScript">
+    <bpmn:userTask id="TweetAnfragePrufenTask1" name="Tweet-Anfrage prüfen" camunda:asyncAfter="true" camunda:candidateGroups="kommabt">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="tweetContent" label="Eingereichter Tweet-Text" type="string">
+            <camunda:validation>
+              <camunda:constraint name="readonly" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="checkResultLocal" label="Prüfergebnis" type="enum">
+            <camunda:value id="accepted" name="Genehmigt" />
+            <camunda:value id="revisable" name="Zu überarbeiten" />
+            <camunda:value id="rejected" name="Abgelehnt" />
+          </camunda:formField>
+          <camunda:formField id="checkResultComment" label="Begründung" type="string" />
+        </camunda:formData>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="checkResultLocal">accepted</camunda:inputParameter>
+          <camunda:outputParameter name="checkResult">${checkResultLocal}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
       <bpmn:incoming>JaSequenceFlow</bpmn:incoming>
       <bpmn:outgoing>Flow_1codaxr</bpmn:outgoing>
-      <bpmn:script>execution.setVariable("checkResult", "accepted")</bpmn:script>
-    </bpmn:scriptTask>
+    </bpmn:userTask>
+    <bpmn:userTask id="TweetUberarbeitenTask1" name="Tweet überarbeiten" camunda:assignee="${anfrageStellenderBenutzer}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="tweetContent" label="Zu überarbeitender Tweet-Text" type="string" />
+          <camunda:formField id="checkResultComment" label="Begründung" type="string">
+            <camunda:validation>
+              <camunda:constraint name="readonly" />
+            </camunda:validation>
+          </camunda:formField>
+        </camunda:formData>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="checkResult">manualCheckRequired</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>ZuUberarbeitenSequenceFlow1</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rp82z6</bpmn:outgoing>
+    </bpmn:userTask>
   </bpmn:process>
   <bpmn:message id="Message_1og3f17" name="Message_37eants" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -554,9 +590,6 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
           <dc:Bounds x="1470" y="1039" width="78" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0dw0408_di" bpmnElement="TweetUberarbeitenTask1">
-        <dc:Bounds x="1184" y="713" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0rqe009_di" bpmnElement="Gateway_0rqe009" isMarkerVisible="true">
         <dc:Bounds x="665" y="873" width="50" height="50" />
       </bpmndi:BPMNShape>
@@ -578,8 +611,11 @@ execution.setVariable("checkResult", (result !== -1 ? "rejected" : "manualCheckR
       <bpmndi:BPMNShape id="Activity_0brgbxq_di" bpmnElement="AufVerboteneWorterPrufenTask">
         <dc:Bounds x="520" y="858" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1oe94bp_di" bpmnElement="TweetAnfragePrufenTask1">
+      <bpmndi:BPMNShape id="Activity_1oei14q_di" bpmnElement="TweetAnfragePrufenTask1">
         <dc:Bounds x="823" y="1094" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0obxi45_di" bpmnElement="TweetUberarbeitenTask1">
+        <dc:Bounds x="1184" y="713" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Participant_1sjyo88_di" bpmnElement="MicrosoftActiveDirectoryParticipant" isHorizontal="true">
         <dc:Bounds x="160" y="1260" width="300" height="60" />
