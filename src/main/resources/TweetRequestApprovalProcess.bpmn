@@ -142,7 +142,6 @@
         <bpmn:flowNodeRef>TweetAnfragePrufenTask1</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="AutomatischLane" name="Automatisch">
-        <bpmn:flowNodeRef>BenutzerinformationenAuslesenTask</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ManuellePrufungErforderlichGateway</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_1fkaqf6</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>PrufergebnisGateway1</bpmn:flowNodeRef>
@@ -153,16 +152,13 @@
         <bpmn:flowNodeRef>TweetAbgelehntEndEvent1</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>AblehnungMitteilenTask</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>AufVerboteneWorterPrufenTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>BenutzerinformationenAuslesenTask</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="MitarbeiterLane" name="Mitarbeiter">
         <bpmn:flowNodeRef>TweetEingereichtStartEvent</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>TweetUberarbeitenTask1</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
-    <bpmn:task id="BenutzerinformationenAuslesenTask" name="Benutzerinformationen auslesen">
-      <bpmn:incoming>Flow_0by82jn</bpmn:incoming>
-      <bpmn:outgoing>Flow_0zq3832</bpmn:outgoing>
-    </bpmn:task>
     <bpmn:exclusiveGateway id="ManuellePrufungErforderlichGateway" name="Manuelle Prüfung erforderlich?">
       <bpmn:incoming>Flow_0m0chuj</bpmn:incoming>
       <bpmn:outgoing>JaSequenceFlow</bpmn:outgoing>
@@ -249,6 +245,7 @@
             <camunda:value id="rejected" name="Abgelehnt" />
           </camunda:formField>
           <camunda:formField id="checkResultComment" label="Begründung" type="string" />
+          <camunda:formField id="userFullName" label="Anfragestellender Benutzer" type="string" />
         </camunda:formData>
         <camunda:inputOutput>
           <camunda:inputParameter name="checkResultLocal">accepted</camunda:inputParameter>
@@ -285,6 +282,10 @@
       <bpmn:incoming>Flow_0zq3832</bpmn:incoming>
       <bpmn:outgoing>Flow_0r4gqap</bpmn:outgoing>
     </bpmn:businessRuleTask>
+    <bpmn:serviceTask id="BenutzerinformationenAuslesenTask" name="Benutzerinformationen auslesen" camunda:delegateExpression="${getUserInformationAdapter}">
+      <bpmn:incoming>Flow_0by82jn</bpmn:incoming>
+      <bpmn:outgoing>Flow_0zq3832</bpmn:outgoing>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmn:message id="Message_1og3f17" name="Message_37eants" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -563,9 +564,6 @@
         <di:waypoint x="690" y="690" />
         <di:waypoint x="690" y="873" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_1v9puie_di" bpmnElement="BenutzerinformationenAuslesenTask">
-        <dc:Bounds x="363" y="858" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0z8czla_di" bpmnElement="ManuellePrufungErforderlichGateway" isMarkerVisible="true">
         <dc:Bounds x="748" y="873" width="50" height="50" />
         <bpmndi:BPMNLabel>
@@ -619,6 +617,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0z8eovp_di" bpmnElement="AufVerboteneWorterPrufenTask">
         <dc:Bounds x="520" y="858" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0utb7ya_di" bpmnElement="BenutzerinformationenAuslesenTask">
+        <dc:Bounds x="363" y="858" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Participant_1sjyo88_di" bpmnElement="MicrosoftActiveDirectoryParticipant" isHorizontal="true">
         <dc:Bounds x="160" y="1260" width="300" height="60" />
